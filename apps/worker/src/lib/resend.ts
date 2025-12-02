@@ -3,9 +3,11 @@ import type { CreateEmailOptions } from "resend";
 import type { MailPayloadType } from "@trubo/utils";
 import { env } from "@trubo/env";
 
-const key = env.RESEND_KEY;
-if (!key) throw new Error("Missing RESEND_KEY. Set apps/worker/.env RESEND_KEY.");
-const client = new Resend(key);
+function getClient() {
+  const key = env.RESEND_KEY;
+  if (!key) throw new Error("Missing RESEND_KEY. Set apps/worker/.env RESEND_KEY.");
+  return new Resend(key);
+}
 
 export async function sendEmail(data: MailPayloadType) {
   const payload: CreateEmailOptions = {
@@ -14,6 +16,6 @@ export async function sendEmail(data: MailPayloadType) {
     subject: data.subject,
     ...(data.html ? { html: data.html } : { text: (data.text ?? "") }),
   };
-  const out = await client.emails.send(payload);
+  const out = await getClient().emails.send(payload);
   return out;
 }

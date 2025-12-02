@@ -1,11 +1,14 @@
 import express from "express";
 import cors from "cors";
+import { loadEnv, env } from "@trubo/env";
 import { BatchMailPayload } from "@trubo/utils";
 import { queues } from "./queues.js";
 import type { Job } from "bullmq"; //add
-import { env, logJobEnqueue, logJobStatus, connectMongo, isMongoConnected, JobModel } from "@trubo/env";
+import { connectMongo, isMongoConnected, JobModel, logJobEnqueue, logJobStatus } from "@trubo/db";
 
 export const app: express.Application = express();
+
+loadEnv();
 
 const corsOptions = {
   origin: ["http://localhost:3000"],

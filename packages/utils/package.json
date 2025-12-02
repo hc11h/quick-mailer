@@ -1,5 +1,5 @@
 {
-  "name": "@trubo/env",
+  "name": "@trubo/utils",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
@@ -8,8 +8,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "dotenv": "^17.2.1",
-    "mongoose": "^8.7.0"
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

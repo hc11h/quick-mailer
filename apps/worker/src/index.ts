@@ -1,2 +1,6 @@
-import "./workers/priority.js";
-import "./workers/send.js";
+import { loadEnv } from "@trubo/env";
+
+await loadEnv();
+
+await import("./workers/priority.js");
+await import("./workers/send.js");

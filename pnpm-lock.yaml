@@ -19,13 +19,16 @@ importers:
     dependencies:
       '@trubo/bullmq':
         specifier: workspace:*
-        version: link:../../packages/packages/bullmq
+        version: link:../../packages/bullmq
+      '@trubo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@trubo/env':
         specifier: workspace:*
-        version: link:../../packages/packages/env
+        version: link:../../packages/env
       '@trubo/utils':
         specifier: workspace:*
-        version: link:../../packages/packages/utils
+        version: link:../../packages/utils
       bullmq:
         specifier: ^5.7.15
         version: 5.65.0
@@ -111,13 +114,13 @@ importers:
     dependencies:
       '@trubo/bullmq':
         specifier: workspace:*
-        version: link:../../packages/packages/bullmq
+        version: link:../../packages/bullmq
       '@trubo/env':
         specifier: workspace:*
-        version: link:../../packages/packages/env
+        version: link:../../packages/env
       '@trubo/utils':
         specifier: workspace:*
-        version: link:../../packages/packages/utils
+        version: link:../../packages/utils
       bullmq:
         specifier: ^5.58.0
         version: 5.65.0
@@ -128,6 +131,48 @@ importers:
       tsx:
         specifier: ^4.7.1
         version: 4.21.0
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  packages/bullmq:
+    dependencies:
+      '@trubo/env':
+        specifier: workspace:*
+        version: link:../env
+      bullmq:
+        specifier: ^5.58.0
+        version: 5.65.0
+      ioredis:
+        specifier: ^5.7.0
+        version: 5.8.2
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  packages/db:
+    dependencies:
+      '@trubo/env':
+        specifier: workspace:*
+        version: link:../env
+      mongoose:
+        specifier: ^8.7.0
+        version: 8.20.1
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  packages/env:
+    dependencies:
+      dotenv:
+        specifier: ^17.2.1
+        version: 17.2.3
+      zod:
+        specifier: ^4.0.17
+        version: 4.1.13
+    devDependencies:
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
@@ -168,45 +213,6 @@ importers:
         specifier: ^8.46.3
         version: 8.46.3(eslint@9.39.1)(typescript@5.9.2)
 
-  packages/packages/bullmq:
-    dependencies:
-      '@trubo/env':
-        specifier: workspace:*
-        version: link:../env
-      bullmq:
-        specifier: ^5.58.0
-        version: 5.65.0
-      ioredis:
-        specifier: ^5.7.0
-        version: 5.8.2
-    devDependencies:
-      typescript:
-        specifier: ^5.8.3
-        version: 5.9.3
-
-  packages/packages/env:
-    dependencies:
-      dotenv:
-        specifier: ^17.2.1
-        version: 17.2.3
-      mongoose:
-        specifier: ^8.7.0
-        version: 8.20.1
-    devDependencies:
-      typescript:
-        specifier: ^5.8.3
-        version: 5.9.3
-
-  packages/packages/utils:
-    dependencies:
-      zod:
-        specifier: ^4.0.17
-        version: 4.1.13
-    devDependencies:
-      typescript:
-        specifier: ^5.8.3
-        version: 5.9.3
-
   packages/typescript-config: {}
 
   packages/ui:
@@ -239,6 +245,16 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+
+  packages/utils:
+    dependencies:
+      zod:
+        specifier: ^4.0.17
+        version: 4.1.13
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
 
 packages:
 
