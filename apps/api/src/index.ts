@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { loadEnv, env } from "@trubo/env";
+import { loadEnv, getEnv } from "@trubo/env";
 import { BatchMailPayload } from "@trubo/utils";
 import { queues } from "./queues.js";
 import type { Job } from "bullmq"; //add
@@ -267,7 +267,7 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
   res.status(500).json({ ok: false, error: "internal_error", message: msg });
 });
 
-const port = env.PORT;
+const port = getEnv().PORT;
 if (process.env.NODE_ENV !== "test") {
   app.listen(port, () => {
     process.stdout.write(`api listening on ${port}\n`);

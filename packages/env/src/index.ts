@@ -17,7 +17,7 @@ const EnvSchema = z.object({
     .transform((v) => Number(v ?? 8080)),
 });
 
-export const env = (() => {
+export function getEnv() {
   const parsed = EnvSchema.safeParse(process.env);
   if (!parsed.success) {
     throw new Error("Invalid environment configuration");
@@ -31,4 +31,4 @@ export const env = (() => {
     CLIENT_SERVER_LOCATION: e.CLIENT_SERVER_LOCATION,
     PORT: e.PORT,
   };
-})();
+}
