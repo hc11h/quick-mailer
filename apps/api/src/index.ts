@@ -1,13 +1,16 @@
 import express from "express";
 import cors from "cors";
-import { BatchMailPayload } from "./utils";
-import { queues } from "./queues";
+import { loadEnv, getEnv } from "@trubo/env";
+import { BatchMailPayload } from "@trubo/utils";
+import { queues } from "./queues.js";
 import type { Job } from "bullmq"; //add
-import { logJobEnqueue, logJobStatus, connectMongo, isMongoConnected } from "./db";
-import { env } from "./env";
-import { JobModel } from "./db";
+import { connectMongo, isMongoConnected, JobModel, logJobEnqueue, logJobStatus } from "@trubo/db";
+import { authRouter } from "./auth/routes.js";
+import { requireAdmin } from "./auth/middleware.js";
 
 export const app: express.Application = express();
+
+loadEnv();
 
 const corsOptions = {
   origin: ["http://localhost:3000"],
@@ -18,6 +21,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 app.use(express.json());
+app.use("/api/v1/auth", authRouter);
 
 app.get("/", (_req, res) => {
    res.status(200).json({
@@ -36,16 +40,18 @@ app.post("/api/v1/mail/send", async (req, res, next) => {
     const payloads = parsed.data;
     let remainingDefaultKey = 5;
     const results: Array<{ index: number; jobId: string }> = [];
+    const original = Array.isArray(req.body) ? req.body : [];
     for (let i = 0; i < payloads.length; i++) {
       const p = payloads[i];
-      if (!p.providerKey) {
+      const hasProviderKey = !!original[i]?.providerKey;
+      if (!hasProviderKey) {
         if (remainingDefaultKey <= 0) continue;
         remainingDefaultKey -= 1;
       }
       const q = p.priority === "high" ? queues.high : p.priority === "low" ? queues.low : queues.medium;
       const job = await q.add("send-mail", p);
       process.stdout.write(`[api] enqueued ${job.id} priority=${p.priority}\n`);
-      await logJobEnqueue(job.id as string, p);
+      await logJobEnqueue(job.id as string, { ...p, providerKey: original[i]?.providerKey });
       results.push({ index: i, jobId: job.id as string });
     }
     return res.status(202).json({ ok: true, jobs: results });
@@ -64,7 +70,7 @@ app.get("/api/v1/jobs", async (req, res, next) => {
     const start = (page - 1) * limit;
     const end = start + Math.max(0, limit - 1);
     const types = status ? [status] : ["completed", "failed", "active", "waiting"];
-    const jobs = await queues.send.getJobs(types as any, start, end);
+    const jobs: Job[] = await queues.send.getJobs(types as any, start, end);
     const data = jobs.map((j) => ({ id: j.id, name: j.name, attemptsMade: j.attemptsMade, timestamp: j.timestamp }));
     return res.json({ ok: true, jobs: data, page, limit });
   } catch (err) {
@@ -154,7 +160,7 @@ app.get("/api/v1/jobs/:id", async (req, res, next) => {
   }
 });
 
-app.get("/api/v1/admin/jobs", async (req, res, next) => {
+app.get("/api/v1/admin/jobs", requireAdmin, async (req, res, next) => {
   try {
     await connectMongo();
     if (!isMongoConnected()) return res.json({ ok: true, data: [] });
@@ -170,7 +176,7 @@ app.get("/api/v1/admin/jobs", async (req, res, next) => {
   }
 });
 
-app.get("/api/v1/admin/jobs/:id", async (req, res, next) => {
+app.get("/api/v1/admin/jobs/:id", requireAdmin, async (req, res, next) => {
   try {
     await connectMongo();
     if (!isMongoConnected()) return res.status(503).json({ ok: false, error: "mongo_unavailable" });
@@ -183,7 +189,7 @@ app.get("/api/v1/admin/jobs/:id", async (req, res, next) => {
   }
 });
 
-app.get("/api/v1/admin/jobs/:id/events", async (req, res, next) => {
+app.get("/api/v1/admin/jobs/:id/events", requireAdmin, async (req, res, next) => {
   try {
     await connectMongo();
     if (!isMongoConnected()) return res.json({ ok: true, data: [] });
@@ -196,7 +202,7 @@ app.get("/api/v1/admin/jobs/:id/events", async (req, res, next) => {
   }
 });
 
-app.post("/api/v1/admin/jobs/:id/retry", async (req, res, next) => {
+app.post("/api/v1/admin/jobs/:id/retry", requireAdmin, async (req, res, next) => {
   try {
     await connectMongo();
     const id = req.params.id;
@@ -214,7 +220,7 @@ app.post("/api/v1/admin/jobs/:id/retry", async (req, res, next) => {
   }
 });
 
-app.delete("/api/v1/admin/jobs/:id", async (req, res, next) => {
+app.delete("/api/v1/admin/jobs/:id", requireAdmin, async (req, res, next) => {
   try {
     await connectMongo();
     const id = req.params.id;
@@ -264,8 +270,8 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
   res.status(500).json({ ok: false, error: "internal_error", message: msg });
 });
 
-const port = env.PORT;
-if (process.env.NODE_ENV !== "dev") {
+const port = getEnv().PORT;
+if (process.env.NODE_ENV !== "test") {
   app.listen(port, () => {
     process.stdout.write(`api listening on ${port}\n`);
   });

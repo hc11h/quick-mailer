@@ -1,19 +1,22 @@
 import mongoose, { Schema, model } from "mongoose";
-import { env } from "./env";
-
+import { getEnv } from "@trubo/env";
+import { randomBytes, scryptSync, timingSafeEqual, createHash } from "crypto";
 
 let connected = false;
+let connecting: Promise<typeof mongoose> | null = null;
 export async function connectMongo() {
-  if (connected) return;
-  if (!env.MONGODB_URI) return;
+  if (connected || mongoose.connection.readyState === 1) { connected = true; return; }
+  const uri = getEnv().MONGODB_URI as string | undefined;
+  if (!uri) return;
+  if (connecting) { await connecting; connected = true; return; }
   try {
-    await mongoose.connect(env.MONGODB_URI);
-    connected = true;
+    connecting = mongoose.connect(uri).then((m) => { connected = true; return m; }).finally(() => { connecting = null; });
+    await connecting;
   } catch {}
 }
 
 export function isMongoConnected() {
-  return connected;
+  return connected || mongoose.connection.readyState === 1;
 }
 
 const JobSchema = new Schema({
@@ -42,7 +45,7 @@ export async function logJobEnqueue(jobId: string, payload: any) {
     $set: {
       name: payload?.subject ?? "send-mail",
       priority: payload?.priority,
-      providerKeyUsed: !!payload?.providerKey,
+      providerKeyUsed: !!providerKey,
       payload: safePayload,
     }
   , $push: { events: { status: "enqueued", at: new Date() } }
@@ -54,3 +57,4 @@ export async function logJobStatus(jobId: string, status: string, result: any, e
   if (!connected) return;
   await JobModel.updateOne({ jobId }, { $set: { status, result, error }, $push: { events: { status, result, error, at: new Date() } } }, { upsert: true });
 }
+export { AuthCodeModel, UserModel } from "./models/auth/index.js";
