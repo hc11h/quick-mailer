@@ -5,6 +5,7 @@ import { BatchMailPayload } from "@trubo/utils";
 import { queues } from "./queues.js";
 import type { Job } from "bullmq"; //add
 import { connectMongo, isMongoConnected, JobModel, logJobEnqueue, logJobStatus } from "@trubo/db";
+import { authRouter } from "./auth/routes.js";
 
 export const app: express.Application = express();
 
@@ -19,6 +20,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 app.use(express.json());
+app.use("/api/v1/auth", authRouter);
 
 app.get("/", (_req, res) => {
    res.status(200).json({

@@ -18,9 +18,23 @@ const EnvSchema = z.object({
     .string()
     .optional()
     .transform((v) => Number(v ?? 8080)),
+  AUTH_SECRET: z.string().optional(),
 });
 
-export function getEnv() {
+export type Env = {
+  REDIS_URL: string;
+  RESEND_KEY?: string;
+  GMAIL_USER?: string;
+  GMAIL_APP_PASSWORD?: string;
+  GMAIL_FROM?: string;
+  SENDER_MAIL?: string;
+  MONGODB_URI?: string;
+  CLIENT_SERVER_LOCATION: string;
+  PORT: number;
+  AUTH_SECRET: string;
+};
+
+export function getEnv(): Env {
   const parsed = EnvSchema.safeParse(process.env);
   if (!parsed.success) {
     throw new Error("Invalid environment configuration");
@@ -36,5 +50,6 @@ export function getEnv() {
     MONGODB_URI: e.MONGODB_URI,
     CLIENT_SERVER_LOCATION: e.CLIENT_SERVER_LOCATION,
     PORT: e.PORT,
+    AUTH_SECRET: process.env.AUTH_SECRET ?? "dev_secret",
   };
 }
