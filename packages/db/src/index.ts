@@ -3,17 +3,20 @@ import { getEnv } from "@trubo/env";
 import { randomBytes, scryptSync, timingSafeEqual, createHash } from "crypto";
 
 let connected = false;
+let connecting: Promise<typeof mongoose> | null = null;
 export async function connectMongo() {
-  if (connected) return;
-  if (!getEnv().MONGODB_URI) return;
+  if (connected || mongoose.connection.readyState === 1) { connected = true; return; }
+  const uri = getEnv().MONGODB_URI as string | undefined;
+  if (!uri) return;
+  if (connecting) { await connecting; connected = true; return; }
   try {
-    await mongoose.connect(getEnv().MONGODB_URI as string);
-    connected = true;
+    connecting = mongoose.connect(uri).then((m) => { connected = true; return m; }).finally(() => { connecting = null; });
+    await connecting;
   } catch {}
 }
 
 export function isMongoConnected() {
-  return connected;
+  return connected || mongoose.connection.readyState === 1;
 }
 
 const JobSchema = new Schema({
