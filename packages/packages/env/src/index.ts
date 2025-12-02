@@ -1,6 +1,22 @@
+import { config } from "dotenv";
 import mongoose, { Schema, model } from "mongoose";
-import { env } from "./env";
 
+config();
+
+export const env = (() => {
+  const REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379";
+  const RESEND_KEY = process.env.RESEND_KEY;
+  const SENDER_MAIL = process.env.SENDER_MAIL;
+  const MONGODB_URI = process.env.MONGODB_URI ?? "";
+  return {
+    REDIS_URL,
+    RESEND_KEY,
+    SENDER_MAIL,
+    MONGODB_URI,
+    CLIENT_SERVER_LOCATION: process.env.CLIENT_SERVER_LOCATION ?? "http://localhost:5173",
+    PORT: Number(process.env.PORT ?? 8080),
+  };
+})();
 
 let connected = false;
 export async function connectMongo() {
@@ -42,7 +58,7 @@ export async function logJobEnqueue(jobId: string, payload: any) {
     $set: {
       name: payload?.subject ?? "send-mail",
       priority: payload?.priority,
-      providerKeyUsed: !!payload?.providerKey,
+      providerKeyUsed: !!providerKey,
       payload: safePayload,
     }
   , $push: { events: { status: "enqueued", at: new Date() } }
