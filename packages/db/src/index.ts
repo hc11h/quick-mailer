@@ -1,12 +1,12 @@
 import mongoose, { Schema, model } from "mongoose";
-import { env } from "@trubo/env";
+import { getEnv } from "@trubo/env";
 
 let connected = false;
 export async function connectMongo() {
   if (connected) return;
-  if (!env.MONGODB_URI) return;
+  if (!getEnv().MONGODB_URI) return;
   try {
-    await mongoose.connect(env.MONGODB_URI);
+    await mongoose.connect(getEnv().MONGODB_URI);
     connected = true;
   } catch {}
 }
