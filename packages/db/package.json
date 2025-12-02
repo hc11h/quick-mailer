@@ -12,6 +12,7 @@
     "@trubo/env": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@types/node": "^22.9.0"
   }
 }

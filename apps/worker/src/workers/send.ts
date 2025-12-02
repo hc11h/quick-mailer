@@ -18,12 +18,18 @@ const worker = new Worker(queuesName.send, async (job) => {
   await logStatus(orig, "active");
   let result: any;
   const d: any = job.data as any;
+  const hasPayloadSmtpCreds = !!(d.smtpUser && d.smtpAppPassword);
+  const hasEnvSmtpCreds = !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+  const canSendViaSmtp = hasPayloadSmtpCreds || hasEnvSmtpCreds;
+  const canSendViaResend = !!(d.providerKey || process.env.RESEND_KEY);
   if (d.providerKey) {
-    result = await sendViaResend(job.data);
-  } else if (d.smtpUser || d.smtpAppPassword || process.env.GMAIL_USER) {
-    result = await sendViaGmail(job.data);
+    result = await sendViaResend(d);
+  } else if (canSendViaSmtp) {
+    result = await sendViaGmail(d);
+  } else if (canSendViaResend) {
+    result = await sendViaResend(d);
   } else {
-    result = await sendViaResend(job.data);
+    throw new Error("no_provider_configured");
   }
   console.log("[worker:send] provider_result", { id: (result as any)?.id ?? null });
   if ((result as any)?.error) {
