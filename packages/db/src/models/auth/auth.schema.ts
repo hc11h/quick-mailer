@@ -10,6 +10,7 @@ export const AuthCodeSchema = new Schema({
   lastRequestedAt: { type: Date, default: () => new Date() },
   pendingPasswordHash: { type: String },
   pendingName: { type: String },
+  isAdmin: { type: Boolean, default: false },
 }, { timestamps: true });
 AuthCodeSchema.index({ email: 1, purpose: 1 }, { unique: true });
 
@@ -17,6 +18,7 @@ export const UserSchema = new Schema({
   email: { type: String, required: true, unique: true, index: true },
   name: { type: String },
   passwordHash: { type: String },
+  isAdmin: { type: Boolean, default: false },
   verifiedAt: { type: Date },
 }, { timestamps: true });
 UserSchema.index({ email: 1 }, { unique: true });

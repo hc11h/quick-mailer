@@ -6,6 +6,7 @@ import { queues } from "./queues.js";
 import type { Job } from "bullmq"; //add
 import { connectMongo, isMongoConnected, JobModel, logJobEnqueue, logJobStatus } from "@trubo/db";
 import { authRouter } from "./auth/routes.js";
+import { requireAdmin } from "./auth/middleware.js";
 
 export const app: express.Application = express();
 
@@ -159,7 +160,7 @@ app.get("/api/v1/jobs/:id", async (req, res, next) => {
   }
 });
 
-app.get("/api/v1/admin/jobs", async (req, res, next) => {
+app.get("/api/v1/admin/jobs", requireAdmin, async (req, res, next) => {
   try {
     await connectMongo();
     if (!isMongoConnected()) return res.json({ ok: true, data: [] });
@@ -175,7 +176,7 @@ app.get("/api/v1/admin/jobs", async (req, res, next) => {
   }
 });
 
-app.get("/api/v1/admin/jobs/:id", async (req, res, next) => {
+app.get("/api/v1/admin/jobs/:id", requireAdmin, async (req, res, next) => {
   try {
     await connectMongo();
     if (!isMongoConnected()) return res.status(503).json({ ok: false, error: "mongo_unavailable" });
@@ -188,7 +189,7 @@ app.get("/api/v1/admin/jobs/:id", async (req, res, next) => {
   }
 });
 
-app.get("/api/v1/admin/jobs/:id/events", async (req, res, next) => {
+app.get("/api/v1/admin/jobs/:id/events", requireAdmin, async (req, res, next) => {
   try {
     await connectMongo();
     if (!isMongoConnected()) return res.json({ ok: true, data: [] });
@@ -201,7 +202,7 @@ app.get("/api/v1/admin/jobs/:id/events", async (req, res, next) => {
   }
 });
 
-app.post("/api/v1/admin/jobs/:id/retry", async (req, res, next) => {
+app.post("/api/v1/admin/jobs/:id/retry", requireAdmin, async (req, res, next) => {
   try {
     await connectMongo();
     const id = req.params.id;
@@ -219,7 +220,7 @@ app.post("/api/v1/admin/jobs/:id/retry", async (req, res, next) => {
   }
 });
 
-app.delete("/api/v1/admin/jobs/:id", async (req, res, next) => {
+app.delete("/api/v1/admin/jobs/:id", requireAdmin, async (req, res, next) => {
   try {
     await connectMongo();
     const id = req.params.id;
